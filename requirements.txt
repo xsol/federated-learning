@@ -1,4 +1,4 @@
-torch
-torchvision
-tensorboard
-matplotlib
+torch==2.5.1
+torchvision==0.20.1
+tensorboard==2.18.0
+matplotlib==3.9.2
