@@ -23,7 +23,7 @@ def main():
 
     LABELDNESS = 1.0 # leave at 1.0, is not put into metadata
 
-    FEATURE_EXTRACTOR_TAG = "mnist_full_20dim_10epo"
+    FEATURE_EXTRACTOR_TAG = "mnist_10dim"
 
     LOAD_PROTOTYPES = False # for retraining
     LOAD_PROTOTYPES_TAG = "labels_0-4"

@@ -14,7 +14,7 @@ def main():
 
         # general
         "DATASET_TAG": "mnist",                         # Train and eval dataset
-        "FEATURE_EXTRACTOR_TAG": "mnist_full_10epo",  # static feature extractor cnn
+        "FEATURE_EXTRACTOR_TAG": "mnist_10dim",  # static feature extractor cnn
         "LABELDNESS_STEPS": [0.1, 0.5, 0.7],            # train prototypes on datasets with set percentage of labeled data 
         "NUM_DATASET_VARIATIONS": 50,                   # num of different selections of classes, samples for training
         "NUM_FEDERATED_CLIENTS": 500,                   # number of clients to federate
@@ -34,8 +34,8 @@ def main():
         "RESOLVE_CONFLICTS": False,                      # resolve conflict between close prototypes of different label
     }
 
-    #train_prototypes(param)
-    #federate_prototypes(param)
+    train_prototypes(param)
+    federate_prototypes(param)
     evaluate_clients(param)
 
 def evaluate_client(base_dir, client_tags, i, batch_size, meta, device, clients, parent_evals):
