@@ -1,0 +1,4 @@
+events.out*
+__pycache__*
+runs/
+data/
