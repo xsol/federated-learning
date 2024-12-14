@@ -18,7 +18,7 @@ def main():
 
         # general
         "DATASET_TAG": "mnist",                         # Train and eval dataset
-        "FEATURE_EXTRACTOR_TAG_STEPS": ["mnist_10dim", "mnist_20dim"],  # static feature extractor cnn
+        "FEATURE_EXTRACTOR_TAG_STEPS": ["mnist_20dim", "mnist_10dim"],  # static feature extractor cnn
         "LABELDNESS_STEPS": [0.2, 0.5, 0.7],            # train prototypes on datasets with set percentage of labeled data 
         "NUM_DATASET_VARIATIONS": 100,                   # num of different selections of classes, samples for training
         "NUM_FEDERATED_CLIENTS": 500,                   # number of clients to federate
@@ -226,7 +226,7 @@ def federate_prototypes(param, fed_dir):
 
     for i in range(NUM_FEDERATED_CLIENTS):
         # pick number of participants
-        num_participants = round(random.uniform(2, MAX_FEDERATION_PARTICIPANTS))
+        num_participants = round(random.uniform(2-0.5, MAX_FEDERATION_PARTICIPANTS+0.499))
 
         # pick participants
         while True:
