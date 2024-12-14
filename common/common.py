@@ -210,17 +210,32 @@ def visualize_loss_by_federation_participants(writer, loss_infos):
     participants = [loss_info["num_fed_participants"] for loss_info in loss_infos]
     min_part = min(participants)
     max_part = max(participants)
+    spread = max_part - min_part
+    num_containers = 12
+    containers = []
+    if spread < num_containers:
+        containers = [(i, i+1) for i in range(min_part, max_part+1)]
+    else:
+        step = round(spread/num_containers)
+        i = min_part + step
+        prev_i = min_part
+        while i < max_part:
+            containers.append((prev_i, i+1))
+            prev_i = i+1
+            i+=step
+        containers.append((prev_i, i+1))
+        # print(containers)
     labels = []
     avgs = []
 
     fig, ax = plt.subplots(layout='constrained')
 
-    for i in range(min_part, max_part+1, 1):
-        losses = [loss_info["loss"] for loss_info in loss_infos if loss_info["num_fed_participants"] == i]
+    for mi, ma in containers:
+        losses = [loss_info["loss"] for loss_info in loss_infos if loss_info["num_fed_participants"] >= mi and loss_info["num_unlabeled_prototypes_parents"] < ma]
         losses_np = np.array(losses)
         losses_avg = np.average(losses_np)
         avgs.append(losses_avg)
-        labels.append(f"{i}")
+        labels.append(f"{mi}\n-\n{ma-1}")
     
     bars = ax.bar(labels, [round(num, 3) for num in avgs])
     ax.bar_label(bars, padding=3, fontsize=6)
@@ -277,17 +292,32 @@ def visualize_loss_by_num_unlabeled_prototypes_parents(writer, loss_infos):
     participants = [loss_info["num_unlabeled_prototypes_parents"] for loss_info in loss_infos]
     min_part = min(participants)
     max_part = max(participants)
+    spread = max_part - min_part
+    num_containers = 12
+    containers = []
+    if spread < num_containers:
+        containers = [(i, i+1) for i in range(min_part, max_part+1)]
+    else:
+        step = round(spread/num_containers)
+        i = min_part + step
+        prev_i = min_part
+        while i < max_part:
+            containers.append((prev_i, i+1))
+            prev_i = i+1
+            i+=step
+        containers.append((prev_i, i+1))
+        # print(containers)
     labels = []
     avgs = []
 
     fig, ax = plt.subplots(layout='constrained')
 
-    for i in range(min_part, max_part+1, 1):
-        losses = [loss_info["loss"] for loss_info in loss_infos if loss_info["num_unlabeled_prototypes_parents"] == i]
+    for mi, ma in containers:
+        losses = [loss_info["loss"] for loss_info in loss_infos if loss_info["num_unlabeled_prototypes_parents"] >= mi and loss_info["num_unlabeled_prototypes_parents"] < ma]
         losses_np = np.array(losses)
         losses_avg = np.average(losses_np)
         avgs.append(losses_avg)
-        labels.append(f"{i}")
+        labels.append(f"{mi}\n-\n{ma-1}")
     
     bars = ax.bar(labels, [round(num, 3) for num in avgs])
     ax.bar_label(bars, padding=3, fontsize=6)
@@ -344,17 +374,32 @@ def visualize_loss_by_num_conflicts_resolved(writer, loss_infos):
     participants = [loss_info["num_conflicts_resolved"] for loss_info in loss_infos]
     min_part = min(participants)
     max_part = max(participants)
+    spread = max_part - min_part
+    num_containers = 12
+    containers = []
+    if spread < num_containers:
+        containers = [(i, i+1) for i in range(min_part, max_part+1)]
+    else:
+        step = round(spread/num_containers)
+        i = min_part + step
+        prev_i = min_part
+        while i < max_part:
+            containers.append((prev_i, i+1))
+            prev_i = i+1
+            i+=step
+        containers.append((prev_i, i+1))
+        # print(containers)
     labels = []
     avgs = []
 
     fig, ax = plt.subplots(layout='constrained')
 
-    for i in range(min_part, max_part+1, 1):
-        losses = [loss_info["loss"] for loss_info in loss_infos if loss_info["num_conflicts_resolved"] == i]
+    for mi, ma in containers:
+        losses = [loss_info["loss"] for loss_info in loss_infos if loss_info["num_conflicts_resolved"] >= mi and loss_info["num_unlabeled_prototypes_parents"] < ma]
         losses_np = np.array(losses)
         losses_avg = np.average(losses_np)
         avgs.append(losses_avg)
-        labels.append(f"{i}")
+        labels.append(f"{mi}\n-\n{ma-1}")
     
     bars = ax.bar(labels, [round(num, 3) for num in avgs])
     ax.bar_label(bars, padding=3, fontsize=6)
@@ -475,27 +520,55 @@ def visualize_num_prototypes_parents_distribution(writer, loss_infos):
     losses = []
     for client in loss_infos:
         losses.extend(client["num_prototypes_parents"])
-    losses_np = np.array(losses)
-    min_loss = min(losses)
-    max_loss = max(losses)
-    containers = 10
+    # losses_np = np.array(losses)
+    # min_loss = min(losses)
+    # max_loss = max(losses)
+    # containers = 10
+    # labels = []
+    # nums = []
+    # steps = (max_loss-min_loss)/containers
+    # eps = 0.0001
+
+    # fig, ax = plt.subplots(layout='constrained')
+
+    # for i in range(containers):
+    #     thresh = min_loss + i*steps
+    #     nums.append(((thresh <= losses_np) & (losses_np <= (thresh+steps+eps))).sum())
+    #     labels.append(f"{round(thresh, 3)}\n - \n{round(thresh+steps, 3)}")
+
+    num_parent_prototypes = losses
+    num_parent_prototypes_np = np.array(num_parent_prototypes)
+    min_part = min(num_parent_prototypes)
+    max_part = max(num_parent_prototypes)
+    spread = max_part - min_part
+    num_containers = 12
+    containers = []
+    if spread < num_containers:
+        containers = [(i, i+1) for i in range(min_part, max_part+1)]
+    else:
+        step = round(spread/num_containers)
+        i = min_part + step
+        prev_i = min_part
+        while i < max_part:
+            containers.append((prev_i, i+1))
+            prev_i = i+1
+            i+=step
+        containers.append((prev_i, i+1))
+        # print(containers)
     labels = []
     nums = []
-    steps = (max_loss-min_loss)/containers
-    eps = 0.0001
 
     fig, ax = plt.subplots(layout='constrained')
 
-    for i in range(containers):
-        thresh = min_loss + i*steps
-        nums.append(((thresh <= losses_np) & (losses_np <= (thresh+steps+eps))).sum())
-        labels.append(f"{round(thresh, 3)}\n - \n{round(thresh+steps, 3)}")
+    for mi, ma in containers:
+        nums.append(((mi <= num_parent_prototypes_np) & (num_parent_prototypes_np < (ma))).sum())
+        labels.append(f"{mi}\n-\n{ma-1}")
     
     bars = ax.bar(labels, nums)
     ax.bar_label(bars, padding=3, fontsize=6)
     ax.set_ylabel("number of parent clients")
     ax.set_xlabel("number of prototypes before federating")
-    ax.set_title(f"Prototype-count distribution of parent clients \n(avg: {round(np.average(losses_np), 4)})")
+    ax.set_title(f"Prototype-count distribution of parent clients \n(avg: {round(np.average(num_parent_prototypes_np), 4)})")
 
     writer.add_figure(f"Prototype-count distribution parents", fig)
     fig.clf()
@@ -503,27 +576,39 @@ def visualize_num_prototypes_parents_distribution(writer, loss_infos):
 def visualize_num_prototypes_distribution(writer, loss_infos):
     
     losses = [loss_info["num_prototypes"] for loss_info in loss_infos]
-    losses_np = np.array(losses)
-    min_loss = min(losses)
-    max_loss = max(losses)
-    containers = 10
+    num_parent_prototypes = losses
+    num_parent_prototypes_np = np.array(num_parent_prototypes)
+    min_part = min(num_parent_prototypes)
+    max_part = max(num_parent_prototypes)
+    spread = max_part - min_part
+    num_containers = 12
+    containers = []
+    if spread < num_containers:
+        containers = [(i, i+1) for i in range(min_part, max_part+1)]
+    else:
+        step = round(spread/num_containers)
+        i = min_part + step
+        prev_i = min_part
+        while i < max_part:
+            containers.append((prev_i, i+1))
+            prev_i = i+1
+            i+=step
+        containers.append((prev_i, i+1))
+        # print(containers)
     labels = []
     nums = []
-    steps = (max_loss-min_loss)/containers
-    eps = 0.0001
 
     fig, ax = plt.subplots(layout='constrained')
 
-    for i in range(containers):
-        thresh = min_loss + i*steps
-        nums.append(((thresh <= losses_np) & (losses_np <= (thresh+steps+eps))).sum())
-        labels.append(f"{round(thresh, 3)}\n - \n{round(thresh+steps, 3)}")
+    for mi, ma in containers:
+        nums.append(((mi <= num_parent_prototypes_np) & (num_parent_prototypes_np < (ma))).sum())
+        labels.append(f"{mi}\n-\n{ma-1}")
     
     bars = ax.bar(labels, nums)
     ax.bar_label(bars, padding=3, fontsize=6)
     ax.set_ylabel('number of federated clients')
     ax.set_xlabel("number of prototypes after federating")
-    ax.set_title(f"Prototype-count distribution of federated clients \n(avg: {round(np.average(losses_np), 4)})")
+    ax.set_title(f"Prototype-count distribution of federated clients \n(avg: {round(np.average(num_parent_prototypes_np), 4)})")
 
     writer.add_figure(f"Prototype-count distribution", fig)
     fig.clf()
@@ -531,27 +616,39 @@ def visualize_num_prototypes_distribution(writer, loss_infos):
 def visualize_num_unlabeled_prototypes_parents_distribution(writer, loss_infos):
     
     losses = [loss_info["num_unlabeled_prototypes_parents"] for loss_info in loss_infos]
-    losses_np = np.array(losses)
-    min_loss = min(losses)
-    max_loss = max(losses)
-    containers = 10
+    num_parent_prototypes = losses
+    num_parent_prototypes_np = np.array(num_parent_prototypes)
+    min_part = min(num_parent_prototypes)
+    max_part = max(num_parent_prototypes)
+    spread = max_part - min_part
+    num_containers = 12
+    containers = []
+    if spread < num_containers:
+        containers = [(i, i+1) for i in range(min_part, max_part+1)]
+    else:
+        step = round(spread/num_containers)
+        i = min_part + step
+        prev_i = min_part
+        while i < max_part:
+            containers.append((prev_i, i+1))
+            prev_i = i+1
+            i+=step
+        containers.append((prev_i, i+1))
+        # print(containers)
     labels = []
     nums = []
-    steps = (max_loss-min_loss)/containers
-    eps = 0.0001
 
     fig, ax = plt.subplots(layout='constrained')
 
-    for i in range(containers):
-        thresh = min_loss + i*steps
-        nums.append(((thresh <= losses_np) & (losses_np <= (thresh+steps+eps))).sum())
-        labels.append(f"{round(thresh, 3)}\n - \n{round(thresh+steps, 3)}")
+    for mi, ma in containers:
+        nums.append(((mi <= num_parent_prototypes_np) & (num_parent_prototypes_np < (ma))).sum())
+        labels.append(f"{mi}\n-\n{ma-1}")
     
     bars = ax.bar(labels, nums)
     ax.bar_label(bars, padding=3, fontsize=6)
     ax.set_ylabel('number of federated clients')
     ax.set_xlabel("total number of unlabeled prototypes from parents")
-    ax.set_title(f"Distribution of number of unlabeled parent prototypes\n(avg: {round(np.average(losses_np), 4)})")
+    ax.set_title(f"Distribution of number of unlabeled parent prototypes\n(avg: {round(np.average(num_parent_prototypes_np), 4)})")
 
     writer.add_figure(f"Unlabeled parent prototypes distribution", fig)
     fig.clf()
@@ -559,27 +656,40 @@ def visualize_num_unlabeled_prototypes_parents_distribution(writer, loss_infos):
 def visualize_num_conflicts_resolved_distribution(writer, loss_infos):
     
     losses = [loss_info["num_conflicts_resolved"] for loss_info in loss_infos]
-    losses_np = np.array(losses)
-    min_loss = min(losses)
-    max_loss = max(losses)
-    containers = 10
+    num_parent_prototypes = losses
+    num_parent_prototypes_np = np.array(num_parent_prototypes)
+    min_part = min(num_parent_prototypes)
+    max_part = max(num_parent_prototypes)
+    spread = max_part - min_part
+    num_containers = 12
+    containers = []
+    if spread < num_containers:
+        containers = [(i, i+1) for i in range(min_part, max_part+1)]
+    else:
+        step = round(spread/num_containers)
+        i = min_part + step
+        prev_i = min_part
+        while i < max_part:
+            containers.append((prev_i, i+1))
+            prev_i = i+1
+            i+=step
+        containers.append((prev_i, i+1))
+        # print(containers)
     labels = []
     nums = []
-    steps = (max_loss-min_loss)/containers
-    eps = 0.0001
 
     fig, ax = plt.subplots(layout='constrained')
 
-    for i in range(containers):
-        thresh = min_loss + i*steps
-        nums.append(((thresh <= losses_np) & (losses_np <= (thresh+steps+eps))).sum())
-        labels.append(f"{round(thresh, 3)}\n - \n{round(thresh+steps, 3)}")
+    for mi, ma in containers:
+        nums.append(((mi <= num_parent_prototypes_np) & (num_parent_prototypes_np < (ma))).sum())
+        labels.append(f"{mi}\n-\n{ma-1}")
+    
     
     bars = ax.bar(labels, nums)
     ax.bar_label(bars, padding=3, fontsize=6)
     ax.set_ylabel('number of federated clients')
     ax.set_xlabel("number of resolved conflicts in federating")
-    ax.set_title(f"Distribution of number of resolved conflicts in federating\n(avg: {round(np.average(losses_np), 4)})")
+    ax.set_title(f"Distribution of number of resolved conflicts in federating\n(avg: {round(np.average(num_parent_prototypes_np), 4)})")
 
     writer.add_figure(f"Resolved conflicts distribution", fig)
     fig.clf()
@@ -587,27 +697,39 @@ def visualize_num_conflicts_resolved_distribution(writer, loss_infos):
 def visualize_num_merges_distribution(writer, loss_infos):
     
     losses = [loss_info["num_merges"] for loss_info in loss_infos]
-    losses_np = np.array(losses)
-    min_loss = min(losses)
-    max_loss = max(losses)
-    containers = 10
+    num_parent_prototypes = losses
+    num_parent_prototypes_np = np.array(num_parent_prototypes)
+    min_part = min(num_parent_prototypes)
+    max_part = max(num_parent_prototypes)
+    spread = max_part - min_part
+    num_containers = 12
+    containers = []
+    if spread < num_containers:
+        containers = [(i, i+1) for i in range(min_part, max_part+1)]
+    else:
+        step = round(spread/num_containers)
+        i = min_part + step
+        prev_i = min_part
+        while i < max_part:
+            containers.append((prev_i, i+1))
+            prev_i = i+1
+            i+=step
+        containers.append((prev_i, i+1))
+        # print(containers)
     labels = []
     nums = []
-    steps = (max_loss-min_loss)/containers
-    eps = 0.0001
 
     fig, ax = plt.subplots(layout='constrained')
 
-    for i in range(containers):
-        thresh = min_loss + i*steps
-        nums.append(((thresh <= losses_np) & (losses_np <= (thresh+steps+eps))).sum())
-        labels.append(f"{round(thresh, 3)}\n - \n{round(thresh+steps, 3)}")
+    for mi, ma in containers:
+        nums.append(((mi <= num_parent_prototypes_np) & (num_parent_prototypes_np < (ma))).sum())
+        labels.append(f"{mi}\n-\n{ma-1}")
     
     bars = ax.bar(labels, nums)
     ax.bar_label(bars, padding=3, fontsize=6)
     ax.set_ylabel('number of federated clients')
     ax.set_xlabel("total number of merges while federating")
-    ax.set_title(f"Distribution of number of merges while federating\n(avg: {round(np.average(losses_np), 4)})")
+    ax.set_title(f"Distribution of number of merges while federating\n(avg: {round(np.average(num_parent_prototypes_np), 4)})")
 
     writer.add_figure(f"Merge-count distribution", fig)
     fig.clf()
