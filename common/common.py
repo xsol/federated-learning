@@ -60,7 +60,7 @@ def load_dataset(batch_size, dataset_tag, num_classes, uniform_dist_samples, max
 
         if uniform_dist_labels:
             random.shuffle(classes)
-            num_labels = round(random.uniform(1, num_classes*max_classes_coeff))
+            num_labels = round(random.uniform(1-0.5, round(num_classes*max_classes_coeff)+0.499))
             labels = classes[0:num_labels]
         else:
             labels = classes
@@ -520,22 +520,7 @@ def visualize_num_prototypes_parents_distribution(writer, loss_infos):
     losses = []
     for client in loss_infos:
         losses.extend(client["num_prototypes_parents"])
-    # losses_np = np.array(losses)
-    # min_loss = min(losses)
-    # max_loss = max(losses)
-    # containers = 10
-    # labels = []
-    # nums = []
-    # steps = (max_loss-min_loss)/containers
-    # eps = 0.0001
-
-    # fig, ax = plt.subplots(layout='constrained')
-
-    # for i in range(containers):
-    #     thresh = min_loss + i*steps
-    #     nums.append(((thresh <= losses_np) & (losses_np <= (thresh+steps+eps))).sum())
-    #     labels.append(f"{round(thresh, 3)}\n - \n{round(thresh+steps, 3)}")
-
+    
     num_parent_prototypes = losses
     num_parent_prototypes_np = np.array(num_parent_prototypes)
     min_part = min(num_parent_prototypes)
