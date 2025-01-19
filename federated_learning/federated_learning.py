@@ -1,7 +1,7 @@
 import torch
 
 
-def federate(clients, t_goodness, t_similarity, device, do_resolve_conflicts=False):
+def federate(clients, t_goodness, t_similarity, device, do_resolve_conflicts=False, resolve_conflicts_thresh=None):
     stats = {"num_merges": 0, "num_conflicts_resolved": 0}
     accumulated_prototypes = accumulate_prototypes(clients)
     filtered_prototypes = filter_prototypes(accumulated_prototypes, t_goodness)
@@ -28,16 +28,18 @@ def federate(clients, t_goodness, t_similarity, device, do_resolve_conflicts=Fal
             break
     
     if do_resolve_conflicts:
-        federated_prototypes, num_resolved_conflicts = resolve_conflicts(federated_prototypes, t_similarity, device)
+        if resolve_conflicts_thresh is None:
+            resolve_conflicts_thresh = t_similarity
+        federated_prototypes, num_resolved_conflicts = resolve_conflicts(federated_prototypes, resolve_conflicts_thresh, device)
         stats["num_conflicts_resolved"] = num_resolved_conflicts
 
     return federated_prototypes, stats
 
 def resolve_conflicts(prototypes, t_similarity, device):
     num_resolved_conflicts = 0
+    # calculate similarity matrix
+    S = calculate_similarity_matrix(prototypes, device)
     while True:
-        # calculate similarity matrix
-        S = calculate_similarity_matrix(prototypes, device)
         # federated_learning.print_matrix(S)
         i, j = find_most_similar(S)
 
@@ -47,9 +49,13 @@ def resolve_conflicts(prototypes, t_similarity, device):
         elif S[i][j] > t_similarity:
             # conflicting prototypes, very similar but
             # should have conflicting labels
-            assert prototypes[i].label != prototypes[j].label
-            prototypes = pick_one_prototype(prototypes, i, j)
-            num_resolved_conflicts+=1
+            if prototypes[i].label != prototypes[j].label:
+                prototypes = pick_one_prototype(prototypes, i, j)
+                num_resolved_conflicts+=1
+                # recalculate similarity matrix
+                S = calculate_similarity_matrix(prototypes, device)
+            else:
+                S[i][j] = -1
 
         else:
             break 
