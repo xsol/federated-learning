@@ -14,9 +14,9 @@ def main():
 
         # general
         "DATASET_TAG": "mnist",                         # Train and eval dataset
-        "FEATURE_EXTRACTOR_TAG": "mnist_10dim",  # static feature extractor cnn
-        "LABELDNESS_STEPS": [0.1, 0.5, 0.7],            # train prototypes on datasets with set percentage of labeled data 
-        "NUM_DATASET_VARIATIONS": 50,                   # num of different selections of classes, samples for training
+        "FEATURE_EXTRACTOR_TAG": "mnist_20dim",  # static feature extractor cnn
+        "LABELDNESS_STEPS": [0.2, 0.5, 0.7],            # train prototypes on datasets with set percentage of labeled data 
+        "NUM_DATASET_VARIATIONS": 150,                   # num of different selections of classes, samples for training
         "NUM_FEDERATED_CLIENTS": 500,                   # number of clients to federate
         "MAX_CLASSES_COEFF": 0.5,                       # number of classes for data subset is random.uniform(1,num_classes*MAX_CLASSES_COEFF). use to reduce number of trained classes
 
@@ -24,19 +24,20 @@ def main():
         "M": 7,                                         # number of closest prototypes to shift                             
         "TAU": 0.7,                                     # novelty detection threshold
         "INITIAL_GOODNESS": 10.0,                       # 
-        "NUM_PROTOTYPES": 40,                           # 
+        "NUM_PROTOTYPES": 100,                           # 
         "BATCH_SIZE": 1,                                # 
 
         # federated learning
         "THRESHOLD_SIMILARITY": 0.95,                   # prototypes below threshold are merged
-        "THRESHOLD_GOODNESS": 1.0,                    # remove prototypes below threshold
+        "THRESHOLD_GOODNESS": 50.0,                    # remove prototypes below threshold
         "MAX_FEDERATION_PARTICIPANTS": 7,               # 
-        "RESOLVE_CONFLICTS": False,                      # resolve conflict between close prototypes of different label
+        "THRESHOLD_SIMILARITY_RESOLVE_CONFLICTS": 0.99,
+        "RESOLVE_CONFLICTS": True,                      # resolve conflict between close prototypes of different label
     }
 
     train_prototypes(param)
-    federate_prototypes(param)
-    evaluate_clients(param)
+    #federate_prototypes(param)
+    #evaluate_clients(param)
 
 def evaluate_client(base_dir, client_tags, i, batch_size, meta, device, clients, parent_evals):
     writer = SummaryWriter(f'{base_dir}/runs/auto/{client_tags[i]}')
@@ -99,7 +100,7 @@ def evaluate_clients(param):
     # calculate difference of max(parents) and eval results
 
     # get all clients (fed or not)
-    client_tags = common.get_tags_auto()
+    client_tags = common.get_tags()
     clients = [prototype_ops.load_prototypes(tag, device, True) for tag in client_tags]
     meta = [common.load_metadata(tag, True) for tag in client_tags]
 
@@ -137,19 +138,20 @@ def federate_prototypes(param):
     MAX_FEDERATION_PARTICIPANTS = param["MAX_FEDERATION_PARTICIPANTS"]
     THRESHOLD_SIMILARITY = param["THRESHOLD_SIMILARITY"]
     RESOLVE_CONFLICTS = param["RESOLVE_CONFLICTS"]
+    THRESHOLD_SIMILARITY_RESOLVE_CONFLICTS = param["THRESHOLD_SIMILARITY_RESOLVE_CONFLICTS"]
 
     device = common.get_device()
     assert MAX_FEDERATION_PARTICIPANTS > 1
 
     # load all prototypes and metadata
-    client_tags = common.get_tags_auto()
+    client_tags = common.get_tags()
     clients = [prototype_ops.load_prototypes(tag, device, True) for tag in client_tags]
     meta = [common.load_metadata(tag, True) for tag in client_tags]
     permutation = [i for i in range(len(clients))]
 
     for i in range(NUM_FEDERATED_CLIENTS):
         # pick number of participants
-        num_participants = round(random.uniform(2, MAX_FEDERATION_PARTICIPANTS))
+        num_participants = round(random.uniform(2-0.5, MAX_FEDERATION_PARTICIPANTS+0.499))
 
         # pick participants
         while True:
@@ -165,7 +167,7 @@ def federate_prototypes(param):
             fed_clients.append({"tag": client_tags[p], "meta": meta[p], "prototypes": clients[p]})
             labels_all.extend(meta[p]["labels"])
 
-        federated_client, stats = federated_learning.federate(fed_clients, THRESHOLD_GOODNESS, THRESHOLD_SIMILARITY, device, do_resolve_conflicts=RESOLVE_CONFLICTS)
+        federated_client, stats = federated_learning.federate(fed_clients, THRESHOLD_GOODNESS, THRESHOLD_SIMILARITY, device, do_resolve_conflicts=RESOLVE_CONFLICTS, resolve_conflicts_thresh=THRESHOLD_SIMILARITY_RESOLVE_CONFLICTS)
         labels_unique = list(set(labels_all))
         labels_unique.sort()
 
@@ -196,6 +198,15 @@ def train_prototypes(param):
     for v in range(NUM_DATASET_VARIATIONS):
         data_loader = common.load_dataset(BATCH_SIZE, DATASET_TAG, num_classes, True, MAX_CLASSES_COEFF, True, [], True)
         
+        # eval data distribution DEBUG
+        dist = {}
+        for (data, label) in data_loader:
+            if str(label) in dist.keys():
+                dist[str(label)]+=1
+            else:
+                dist.update({str(label): 1})
+        print(dist)
+        exit()
         for labeldness in LABELDNESS_STEPS:
             prototypes = [prototype.Prototype(fe.dim_featurespace, i, INITIAL_GOODNESS) for i in range(1, NUM_PROTOTYPES+1)]
             prototypes = prototype_learning.continual_learning(M, TAU, prototypes, data_loader, labeldness, fe)
