@@ -18,9 +18,9 @@ def main():
 
         # general
         "DATASET_TAG": "mnist",                         # Train and eval dataset
-        "FEATURE_EXTRACTOR_TAG_STEPS": ["mnist_20dim", "mnist_10dim"],  # static feature extractor cnn
+        "FEATURE_EXTRACTOR_TAG_STEPS": ["mnist_10dim", "mnist_20dim"],  # static feature extractor cnn
         "LABELDNESS_STEPS": [0.2, 0.5, 0.7],            # train prototypes on datasets with set percentage of labeled data 
-        "NUM_DATASET_VARIATIONS": 100,                   # num of different selections of classes, samples for training
+        "NUM_DATASET_VARIATIONS": 150,                   # num of different selections of classes, samples for training
         "NUM_FEDERATED_CLIENTS": 500,                   # number of clients to federate
         "MAX_CLASSES_COEFF": 0.5,                       # number of classes for data subset is random.uniform(1,num_classes*MAX_CLASSES_COEFF). use to reduce number of trained classes
 
@@ -28,7 +28,7 @@ def main():
         "M": 7,                                         # number of closest prototypes to shift                             
         "TAU": 0.7,                                     # novelty detection threshold
         "INITIAL_GOODNESS": 10.0,                       # 
-        "NUM_PROTOTYPES": 60,                           # 
+        "NUM_PROTOTYPES": 100,                          # 
         "BATCH_SIZE": 1,                                # 
 
         # federated learning eval:
@@ -182,7 +182,6 @@ def evaluate_clients(param, fed_dir):
 
     federated_indices = [i for i in range(len(client_tags)) if meta[i]["parents"] != []]
     base_dir = pathlib.Path(__file__).parent.resolve()
-
     writer_total = SummaryWriter(f'{base_dir}/runs/{fed_dir}/total')
     loss_infos = []
 
@@ -223,6 +222,21 @@ def federate_prototypes(param, fed_dir):
     clients = [prototype_ops.load_prototypes(tag, device, True, automatic_dir=pool_dir) for tag in client_tags]
     meta = [common.load_metadata(tag, True, automatic_dir=pool_dir) for tag in client_tags]
     permutation = [i for i in range(len(clients))]
+
+    # DEBUG
+    # base_dir = pathlib.Path(__file__).parent.resolve()
+    # writer_total = SummaryWriter(f'{base_dir}/runs/manual/total')
+    # loss_info_mock = {"num_prototypes_parents": [],
+    #                 "num_unlabeled_prototypes_parents":[]}
+    # for client in clients:
+    #     num_total = len([proto for proto in client if proto.allocated]) 
+    #     loss_info_mock["num_prototypes_parents"].append(num_total)
+    #     num_unlabeled = len([proto for proto in client if proto.allocated and proto.label < 0])  
+    #     loss_info_mock["num_unlabeled_prototypes_parents"].append(num_unlabeled)
+    # common.visualize_num_unlabeled_prototypes_parents_distribution(writer_total, loss_info_mock)
+    # common.visualize_num_prototypes_parents_distribution(writer_total, loss_info_mock)
+    # writer_total.close()
+    # exit()
 
     for i in range(NUM_FEDERATED_CLIENTS):
         # pick number of participants
