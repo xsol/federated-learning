@@ -1,6 +1,8 @@
 # Federated Learning for Continually Learning Prototypes
 
-This repository contains code for the federated learning algorithm and code needed to evaluate it (including CLP as introduced in https://arxiv.org/abs/2404.00418).
+This repository contains code for a federated learning algorithm based on CLP as introduced in https://arxiv.org/abs/2404.00418.
+The repository contains (not computationally optimized) implementations of said algorithm, CLP and evaluation code.
+The federated learning algorithm is described in a document, which will be uploaded here soon. It also contains evaluation of the Algorithm on MNIST dataset.
 
 ## Structure
 The codebase is found in the `common`, `feature_extractor`, `federated_learning` and `prototypes` directories. 
